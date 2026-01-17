@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LOGIN - DVTEAM NP</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* CSS Khusus Login agar responsif */
+        body.login-page {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background-color: #000;
+            background-image: radial-gradient(circle at 50% 30%, #1a1a1a 0%, #000000 80%);
+        }
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 40px 30px;
+            text-align: center;
+            /* Efek Kaca */
+            background: rgba(20, 20, 20, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(197, 160, 89, 0.3);
+            border-radius: 16px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+        .login-logo {
+            width: 120px; /* Ukuran logo dibatasi agar pas di HP */
+            height: auto;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 15px rgba(197, 160, 89, 0.4));
+        }
+        .login-title {
+            color: #C5A059;
+            font-family: 'Cinzel', serif;
+            letter-spacing: 3px;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body class="login-page">
+
+    <div class="login-container">
+        <img src="logo.png" alt="DVTEAM Logo" class="login-logo">
+        
+        <h2 class="login-title">ACCESS PORTAL</h2>
+        
+        <div style="text-align: left;">
+            <label style="color: #888; font-size: 0.8em; margin-left: 5px;">USERNAME</label>
+            <input type="text" id="username" placeholder="admin">
+            
+            <label style="color: #888; font-size: 0.8em; margin-left: 5px;">PASSWORD</label>
+            <input type="password" id="password" placeholder="••••••••">
+        </div>
+
+        <button onclick="login()" style="width: 100%; margin-top: 20px;">
+            <i class="fa-solid fa-lock"></i> SECURE LOGIN
+        </button>
+        
+        <p style="margin-top: 20px; color: #444; font-size: 0.7em;">
+            © DVTEAM NAGA PERSADA SYSTEM
+        </p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
