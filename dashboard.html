@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - DVTEAM NP</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <div class="glass-panel" style="border-radius: 0; border-left: 0; border-right: 0; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100;">
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <img src="logo.png" style="height: 40px;">
+      <h3 style="margin: 0; font-size: 1.2em;">NAGA PERSADA</h3>
+    </div>
+    <button onclick="logout()" class="btn-secondary" style="padding: 8px 15px; font-size: 0.8em;">
+      <i class="fa-solid fa-power-off"></i>
+    </button>
+  </div>
+
+  <div class="container">
+    
+    <div id="mainDashboardContent">
+      <div class="dashboard-grid">
+        <div class="glass-panel stats-card">
+          <p style="color: var(--text-gray); text-transform: uppercase; font-size: 0.8em; letter-spacing: 2px;">Total Members</p>
+          <div id="totalMembers" class="stats-number">--</div>
+        </div>
+
+        <div class="glass-panel" style="padding: 25px;">
+          <h3 style="margin-top: 0;"><i class="fa-solid fa-user-plus"></i> Registrasi Anggota</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <input type="text" id="name" placeholder="Nama Lengkap">
+            <input type="text" id="uid" placeholder="UID Anggota (Wajib)">
+          </div>
+          <input type="text" id="upline" placeholder="UID Sponsor (Upline)">
+          <input type="date" id="joinDateInput">
+          <button id="addMemberButton" style="width: 100%; margin-top: 10px;">Simpan Data</button>
+        </div>
+      </div>
+
+      <div class="glass-panel" style="margin-top: 20px; padding: 25px;">
+        <h3 style="margin-top: 0;">Pertumbuhan Jaringan</h3>
+        <div style="height: 250px; width: 100%;">
+          <canvas id="growthChart"></canvas>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="glass-panel" style="padding: 25px;">
+          <h3><i class="fa-solid fa-magnifying-glass"></i> Pencarian</h3>
+          <div style="display: flex; gap: 10px;">
+            <input type="text" id="searchTerm" placeholder="Cari Nama / UID..." style="margin-bottom: 0;">
+            <button id="searchButton" style="width: auto;"><i class="fa-solid fa-arrow-right"></i></button>
+          </div>
+          <div id="searchResultsContainer" style="margin-top: 15px;"></div>
+        </div>
+
+        <div class="glass-panel" style="padding: 25px;">
+          <h3><i class="fa-solid fa-layer-group"></i> Pusat Kontrol</h3>
+          <div class="actions-grid">
+            <button onclick="window.location.href='network.html'"><i class="fa-solid fa-project-diagram"></i> Visual Jaringan</button>
+            <button onclick="showMemberList(null)"><i class="fa-solid fa-list"></i> Database Lengkap</button>
+            <button onclick="downloadCSV()" class="btn-secondary"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+            <button onclick="openAuditModal()" style="border: 1px solid var(--gold-primary); background: rgba(212,175,55,0.1); color: var(--gold-primary);">
+                <i class="fa-solid fa-shield-halved"></i> Audit Jalur Naga
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="memberListContainer" class="glass-panel" style="padding: 25px; margin-top: 20px; display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3>Database Anggota</h3>
+        <button onclick="showMainDashboard()" class="btn-secondary">Kembali</button>
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="results-table">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Nama</th>
+              <th>UID</th>
+              <th>Upline</th>
+              <th>Tgl Gabung</th>
+            </tr>
+          </thead>
+          <tbody id="memberListTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div> <div id="editModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3>Edit Anggota</h3>
+      <input type="hidden" id="originalUid">
+      <label>Nama</label><input type="text" id="editName">
+      <label>UID</label><input type="text" id="editUid">
+      <label>Upline</label><input type="text" id="editUpline">
+      <label>Tanggal</label><input type="date" id="editJoinDate">
+      <div style="margin-top: 15px; display: flex; gap: 10px;">
+        <button id="saveEditButton" style="flex: 1;">Simpan</button>
+        <button onclick="closeEditModal()" class="btn-secondary" style="flex: 1;">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="auditModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 700px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3><i class="fa-solid fa-dragon"></i> Audit Jalur Naga</h3>
+        <button onclick="document.getElementById('auditModal').classList.remove('active')" style="background:none; padding:5px; color:#fff;">✕</button>
+      </div>
+      
+      <div style="background: #111; padding: 15px; border-radius: 8px; border: 1px solid #333; margin: 15px 0;">
+        <label style="font-size: 0.8em; color: var(--text-gray);">TARGET ROOT UID (NAGA PERSADA)</label>
+        <div style="display: flex; gap: 10px; margin-top: 5px;">
+          <input type="text" id="targetRootUid" value="ROOT001" style="margin: 0;">
+          <button id="startAuditButton" style="width: auto;">SCAN</button>
+        </div>
+      </div>
+
+      <div id="auditStats" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; display: none;">
+         <div style="background: rgba(46, 204, 113, 0.1); border: 1px solid #2ecc71; padding: 10px; border-radius: 6px; text-align: center;">
+            <span style="font-size: 0.8em; color: #2ecc71;">VALID</span>
+            <strong id="validCount" style="display:block; font-size: 1.5em;">0</strong>
+        </div>
+        <div style="background: rgba(231, 76, 60, 0.1); border: 1px solid #e74c3c; padding: 10px; border-radius: 6px; text-align: center;">
+            <span style="font-size: 0.8em; color: #e74c3c;">ANOMALI</span>
+            <strong id="invalidCount" style="display:block; font-size: 1.5em;">0</strong>
+        </div>
+      </div>
+
+      <div id="auditResultContainer" style="max-height: 300px; overflow-y: auto;">
+        <table class="results-table">
+          <tbody id="auditTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="notification" class="notification"></div>
+  <script src="script.js"></script>
+</body>
+</html>
