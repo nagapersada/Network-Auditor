@@ -1,4 +1,4 @@
-// KONFIGURASI SUPABASE (Sama dengan script.js utama Anda)
+// KONFIGURASI SUPABASE
 const supabaseUrl = 'https://hysjbwysizpczgcsqvuv.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh5c2pid3lzaXpwY3pnY3NxdnV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5MjA2MTYsImV4cCI6MjA3OTQ5NjYxNn0.sLSfXMn9htsinETKUJ5IAsZ2l774rfeaNNmB7mVQcR4';
 const db = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -20,8 +20,10 @@ async function startAudit() {
     resultPanel.style.display = 'none';
 
     try {
-        // 1. Ambil Semua Data Member
-        const { data, error } = await db.from('members').select('uid, name, upline');
+        // [PERBAIKAN] Menggunakan select('*') agar tidak error "column not exist"
+        // Script akan menangani variasi huruf besar/kecil (UID/uid) di tahap selanjutnya
+        const { data, error } = await db.from('members').select('*');
+        
         if (error) throw error;
         
         allMembers = data;
@@ -30,6 +32,7 @@ async function startAudit() {
         performAudit(rootUid);
 
     } catch (err) {
+        console.error(err);
         alert("Gagal mengambil data: " + err.message);
         loading.style.display = 'none';
     }
@@ -41,12 +44,18 @@ function performAudit(rootUid) {
 
     // Buat Map untuk pencarian cepat (O(1))
     const memberMap = new Map();
+    
     allMembers.forEach(m => {
-        // Normalisasi data
-        const uid = String(m.uid || m.UID).trim();
-        const upline = m.upline || m.Upline ? String(m.upline || m.Upline).trim() : null;
-        const name = m.name || m.Nama || "Tanpa Nama";
-        memberMap.set(uid, { uid, name, upline });
+        // [PENTING] Normalisasi Data (Menangani UID/uid, Nama/name, Upline/upline)
+        const uid = String(m.UID || m.uid).trim(); 
+        const rawUpline = m.Upline || m.upline;
+        const upline = rawUpline ? String(rawUpline).trim() : null;
+        const name = m.Nama || m.nama || m.name || "Tanpa Nama";
+        
+        // Simpan ke map hanya jika UID valid
+        if(uid) {
+            memberMap.set(uid, { uid, name, upline });
+        }
     });
 
     // Loop semua member untuk trace jalur
@@ -77,15 +86,18 @@ function performAudit(rootUid) {
 }
 
 // Fungsi Rekursif Penelusuran Jalur
-function tracePathToRoot(startUid, rootUid, map, visited = new Set()) {
+function tracePathToRoot(startUid, rootUid, map) {
     let currentUid = startUid;
-    
+    let visited = new Set(); // Reset visited untuk setiap jalur member
+
     // Batas loop untuk mencegah infinite loop jika ada circular reference (A->B->A)
     while (currentUid) {
+        // Jika ketemu Root, berarti AMAN
         if (currentUid === rootUid) {
             return { status: 'CONNECTED' };
         }
 
+        // Cek Looping
         if (visited.has(currentUid)) {
             return { status: 'DISCONNECTED', reason: 'Looping (Lingkaran Setan)', lastKnown: currentUid };
         }
@@ -93,13 +105,13 @@ function tracePathToRoot(startUid, rootUid, map, visited = new Set()) {
 
         const memberData = map.get(currentUid);
         
-        // Kasus: Upline tidak ditemukan di database
+        // Kasus: Upline tidak ditemukan di database (Data upline ada, tapi orangnya gak ada di tabel)
         if (!memberData) {
             return { status: 'DISCONNECTED', reason: 'Upline Tidak Terdaftar', lastKnown: currentUid };
         }
 
         // Kasus: Upline kosong (Putus di tengah jalan)
-        if (!memberData.upline || memberData.upline === "" || memberData.upline === "-") {
+        if (!memberData.upline || memberData.upline === "" || memberData.upline === "-" || memberData.upline === "null") {
             return { status: 'DISCONNECTED', reason: 'Jalur Putus (Tidak ada Upline)', lastKnown: currentUid };
         }
 
