@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Login - DVTEAM NP</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body style="display: flex; align-items: center; justify-content: center;">
+  
+  <div class="glass-panel" style="padding: 40px; width: 100%; max-width: 400px; text-align: center; margin: 20px;">
+    <div class="logo-container" style="margin-bottom: 20px;">
+      <img src="logo.png" alt="DVTEAM Logo">
+    </div>
+    <h2 style="margin-bottom: 30px;">ACCESS PORTAL</h2>
+    
+    <div style="text-align: left;">
+      <label style="font-size: 0.8em; color: var(--gold-dim); margin-left: 5px;">USERNAME</label>
+      <input type="text" id="username" placeholder="admin">
+      
+      <label style="font-size: 0.8em; color: var(--gold-dim); margin-left: 5px;">PASSWORD</label>
+      <input type="password" id="password" placeholder="••••••••">
+    </div>
+
+    <button id="loginButton" onclick="login()" style="width: 100%; margin-top: 20px; font-size: 1em;">
+      <i class="fa-solid fa-lock"></i> Secure Login
+    </button>
+    
+    <p id="error" style="color: var(--danger); font-size: 0.9em; margin-top: 15px; display: none;"></p>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
+</body>
+</html>
